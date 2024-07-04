@@ -1,6 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { verifyMessage } from "viem";
 import { z } from "zod";
+import { type AddRequestBody } from "../types/AddRequestBody";
+import { type SecretRequestBody } from "../types/SecretRequestBody";
 
 const hexStringSchema = z
   .string()

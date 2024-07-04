@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { requirePaymentSchema } from "../schemas/requirePaymentSchema";
 import IORedis from "ioredis";
+import { type SecretRequestBody } from "../types/SecretRequestBody";
 
 export const requirePaymentMiddleware =
   (redis: IORedis) =>

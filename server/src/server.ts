@@ -21,7 +21,7 @@ export const createServer = () => {
 
 const { server } = createServer();
 
-server.listen({ port: 3000 }, function (err, address) {
+server.listen({ port: 4000 }, function (err, address) {
   if (err) {
     server.log.error(err);
     process.exit(1);

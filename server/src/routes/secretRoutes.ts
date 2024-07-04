@@ -3,6 +3,7 @@ import { secretSchema } from "../schemas/secretSchema";
 import { verifySignatureMiddleware } from "../middleware/verifySignatureMiddleware";
 import { requirePaymentMiddleware } from "../middleware/requirePaymentMiddleware";
 import IORedis from "ioredis";
+import { type SecretRequestBody } from "../types/SecretRequestBody";
 
 export const secretRoutes = (server: FastifyInstance, redis: IORedis) => {
   server.post<{ Body: SecretRequestBody }>(

@@ -3,6 +3,7 @@ import { addBalanceSchema } from "../schemas/addBalanceSchema";
 import { verifySignatureMiddleware } from "../middleware/verifySignatureMiddleware";
 import { addPaymentMiddleware } from "../middleware/addPaymentMiddleware";
 import IORedis from "ioredis";
+import { type AddRequestBody } from "../types/AddRequestBody";
 
 export const addRoutes = (server: FastifyInstance, redis: IORedis) => {
   server.post<{ Body: AddRequestBody }>(

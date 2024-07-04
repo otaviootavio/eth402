@@ -3,6 +3,7 @@ import { getTxByTxHash } from "../utils/getTxByTxHash";
 import { envLoader } from "../envLoader";
 import { addPaymentSchema } from "../schemas/addPaymentSchema";
 import IORedis from "ioredis";
+import { type AddRequestBody } from "../types/AddRequestBody";
 
 export const addPaymentMiddleware =
   (redis: IORedis) =>

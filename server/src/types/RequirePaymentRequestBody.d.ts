@@ -1,4 +1,4 @@
-type RequirePaymentRequestBody = {
+export type RequirePaymentRequestBody = {
   address: `0x${string}`;
   signature: `0x${string}`;
   message: string;
