@@ -3,7 +3,7 @@ import IORedis from "ioredis";
 import { addBalanceSchema } from "./schemas/addBalanceSchema";
 import { secretSchema } from "./schemas/secretSchema";
 
-import { getTxByTxHash } from "../utils/getTxByTxHash";
+import { getTxByTxHash } from "./utils/getTxByTxHash";
 import { envLoader } from "./envLoader";
 
 const fastify = Fastify({
