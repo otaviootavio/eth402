@@ -1,5 +1,7 @@
 # L402
 
+To interact with the API, first, transfer a specified amount of Ethereum to the server's address and record the transaction hash (txid). Next, send a POST request to the `/add` endpoint with a JSON body containing the txid, your Ethereum address, a signature, and a message indicating the txid to add the balance on the server. Verify the balance update from the response. Then, to retrieve secret information, send a POST request to the `/secret` endpoint with a JSON body containing your Ethereum address, a signature, and a message requesting the secret. Ensure your balance is sufficient; otherwise, the server will respond with a 402 status code indicating an "Insufficient balance."
+
 ## Overview
 
 This project is a Fastify-based server that handles adding balance and retrieving secret information, with middleware for verifying signatures and payment requirements. It uses Redis for storage and Zod for schema validation.
