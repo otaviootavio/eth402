@@ -2,15 +2,9 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { getTxByTxHash } from "../utils/getTxByTxHash";
 import { envLoader } from "../envLoader";
 import IORedis from "ioredis";
-import { z } from "zod";
-import { parseEther } from "viem";
+import { addPaymentSchema } from "../schemas/addPaymentSchema";
 
 const redis = new IORedis();
-
-const addPaymentSchema = z.object({
-  txid: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
-  userBalance: z.bigint().optional(),
-});
 
 export async function addPaymentMiddleware(
   request: FastifyRequest<{
