@@ -1,14 +1,19 @@
-import IORedis from "ioredis";
 import supertest from "supertest";
-import { server } from "../../src/server";
+import { createServer } from "../../src/server";
 import { sendSomeValeToAddress } from "./utils/client";
 import { envLoader } from "../../src/envLoader";
 import { signMessage } from "viem/accounts";
 
-const redis = new IORedis();
+// Workaround
+let server: any;
+let redis: any;
 
 beforeAll(async () => {
-  await server.listen({ port: 3000 });
+  const serverInstance = createServer();
+  server = serverInstance.server;
+  redis = serverInstance.redis;
+
+  await server.listen(0);
 });
 
 afterAll(async () => {
