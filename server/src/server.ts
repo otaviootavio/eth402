@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import { addRoutes } from "./routes/addRoutes";
 import { secretRoutes } from "./routes/secretRoutes";
 import { createRedisClient } from "./services/redisServices";
+import { serverRoutes } from "./routes/serverRoutes";
 
 export const createServer = () => {
   const server = Fastify({
@@ -15,6 +16,7 @@ export const createServer = () => {
   // Register routes
   addRoutes(server, redis);
   secretRoutes(server, redis);
+  serverRoutes(server);
 
   return { server, redis };
 };
