@@ -1,10 +1,12 @@
 export const secretSchema = {
-  querystring: {
+  body: {
     type: "object",
     properties: {
       address: { type: "string" },
+      signature: { type: "string" },
+      message: { type: "string" },
     },
-    required: ["address"],
+    required: ["address", "signature", "message"],
   },
   response: {
     200: {

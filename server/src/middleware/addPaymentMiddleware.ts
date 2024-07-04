@@ -7,13 +7,11 @@ import { addPaymentSchema } from "../schemas/addPaymentSchema";
 const redis = new IORedis();
 
 export async function addPaymentMiddleware(
-  request: FastifyRequest<{
-    Querystring: { txid: `0x${string}`; userBalance?: bigint };
-  }>,
+  request: FastifyRequest<{ Body: AddRequestBody }>,
   reply: FastifyReply
 ) {
   try {
-    const { txid } = request.query;
+    const { txid } = request.body;
     const txUsedKey = `txid:${txid.toLowerCase()}`;
 
     // Verifica se a transação já foi usada
@@ -52,7 +50,7 @@ export async function addPaymentMiddleware(
         return;
       }
 
-      request.query.userBalance = newBalance; // Adiciona o saldo atualizado ao request para uso posterior
+      request.body.userBalance = newBalance; // Adiciona o saldo atualizado ao request para uso posterior
     }
   } catch (error) {
     console.log(error);

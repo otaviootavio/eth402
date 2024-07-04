@@ -1,10 +1,13 @@
 export const addBalanceSchema = {
-  querystring: {
+  body: {
     type: "object",
     properties: {
       txid: { type: "string" },
+      address: { type: "string" },
+      signature: { type: "string" },
+      message: { type: "string" },
     },
-    required: ["txid"],
+    required: ["txid", "address", "signature", "message"],
   },
   response: {
     200: {

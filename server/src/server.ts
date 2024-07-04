@@ -4,6 +4,7 @@ import { addBalanceSchema } from "./schemas/addBalanceSchema";
 import { addPaymentMiddleware } from "./middleware/addPaymentMiddleware";
 import { secretSchema } from "./schemas/secretSchema";
 import { requirePaymentMiddleware } from "./middleware/requirePaymentMiddleware";
+import { verifySignatureMiddleware } from "./middleware/verifySignatureMiddleware";
 
 export const server = Fastify({
   logger: true,
@@ -13,20 +14,20 @@ const redis = new IORedis();
 
 server.decorate("redis", redis);
 
-server.post<{ Querystring: { txid: `0x${string}`; userBalance?: bigint } }>(
+server.post<{ Body: AddRequestBody }>(
   "/add",
   {
     schema: addBalanceSchema,
-    preHandler: addPaymentMiddleware,
+    preHandler: [verifySignatureMiddleware, addPaymentMiddleware],
   },
   async function (request, reply) {
     try {
-      if (request.query.userBalance === undefined) {
+      if (request.body.userBalance === undefined) {
         throw new Error("userBalance not set in middleware");
       }
       reply.send({
         message: "Balance updated",
-        balance: request.query.userBalance,
+        balance: request.body.userBalance,
       });
     } catch (error) {
       console.log(error);
@@ -37,15 +38,15 @@ server.post<{ Querystring: { txid: `0x${string}`; userBalance?: bigint } }>(
   }
 );
 
-server.get<{ Querystring: { address: string; userBalance?: bigint } }>(
+server.post<{ Body: SecretRequestBody }>(
   "/secret",
   {
     schema: secretSchema,
-    preHandler: requirePaymentMiddleware,
+    preHandler: [verifySignatureMiddleware, requirePaymentMiddleware],
   },
   async function (request, reply) {
     try {
-      if (request.query.userBalance === undefined) {
+      if (request.body.userBalance === undefined) {
         throw new Error("userBalance not set in middleware");
       }
 

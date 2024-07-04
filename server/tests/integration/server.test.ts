@@ -3,6 +3,7 @@ import supertest from "supertest";
 import { server } from "../../src/server";
 import { sendSomeValeToAddress } from "./utils/client";
 import { envLoader } from "../../src/envLoader";
+import { signMessage } from "viem/accounts";
 
 const redis = new IORedis();
 
@@ -26,9 +27,17 @@ describe("Test /add and /secret routes with real transactions", () => {
       envLoader.SERVER_ADDRESS
     );
 
+    const message = `Add balance for txid ${txid}`;
+    const address = envLoader.CLIENT_ADDRESS;
+
+    const signature = await signMessage({
+      message,
+      privateKey: envLoader.CLIENT_PRIVATE_KEY,
+    });
+
     const response = await supertest(server.server)
       .post("/add")
-      .query({ txid });
+      .send({ message, signature, address, txid });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -40,9 +49,16 @@ describe("Test /add and /secret routes with real transactions", () => {
   test("should return secret if balance is sufficient", async () => {
     await redis.set(`balance:${envLoader.CLIENT_ADDRESS.toLowerCase()}`, "10");
 
+    const message = "Request secret";
+    const address = envLoader.CLIENT_ADDRESS;
+    const signature = await signMessage({
+      message,
+      privateKey: envLoader.CLIENT_PRIVATE_KEY,
+    });
+
     const response = await supertest(server.server)
-      .get("/secret")
-      .query({ address: `${envLoader.CLIENT_ADDRESS.toLowerCase()}` });
+      .post("/secret")
+      .send({ message, signature, address });
 
     expect(response.status).toBe(200);
     expect(response.text).toBe("secret!");
@@ -56,9 +72,16 @@ describe("Test /add and /secret routes with real transactions", () => {
   test("should return 402 if balance is insufficient", async () => {
     await redis.set(`balance:${envLoader.CLIENT_ADDRESS.toLowerCase()}`, "0");
 
+    const message = `Request secret`;
+    const address = envLoader.CLIENT_ADDRESS;
+    const signature = await signMessage({
+      message: "Request secret",
+      privateKey: envLoader.CLIENT_PRIVATE_KEY,
+    });
+
     const response = await supertest(server.server)
-      .get("/secret")
-      .query({ address: `${envLoader.CLIENT_ADDRESS.toLowerCase()}` });
+      .post("/secret")
+      .send({ message, signature, address });
 
     expect(response.status).toBe(402);
     expect(response.text).toBe("Insufficient balance.");
@@ -71,10 +94,17 @@ describe("Test /add and /secret routes with real transactions", () => {
     );
 
     await redis.set(`txid:${txid}`, "used");
+    const message = `Add balance for txid ${txid}`;
+    const address = envLoader.CLIENT_ADDRESS;
 
-    const response = await supertest(server.server).post("/add").query({
-      txid,
+    const signature = await signMessage({
+      message,
+      privateKey: envLoader.CLIENT_PRIVATE_KEY,
     });
+
+    const response = await supertest(server.server)
+      .post("/add")
+      .send({ message, signature, address, txid });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ error: "Transaction already used" });
@@ -83,9 +113,16 @@ describe("Test /add and /secret routes with real transactions", () => {
   test("should return 402 if payment address is incorrect", async () => {
     const txid = await sendSomeValeToAddress(10n, envLoader.OTHER_ADDRESS);
 
+    const message = `Add balance for txid ${txid}`;
+    const address = envLoader.CLIENT_ADDRESS;
+    const signature = await signMessage({
+      privateKey: envLoader.CLIENT_PRIVATE_KEY,
+      message,
+    });
+
     const response = await supertest(server.server)
       .post("/add")
-      .query({ txid });
+      .send({ message, signature, address, txid });
 
     expect(response.status).toBe(402);
     expect(response.text).toBe(
