@@ -11,7 +11,7 @@ export const addBalanceSchema = {
       type: "object",
       properties: {
         message: { type: "string" },
-        balance: { type: "number" },
+        balance: { type: "string" },
       },
     },
     400: {

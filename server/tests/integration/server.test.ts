@@ -21,7 +21,10 @@ beforeEach(async () => {
 
 describe("Test /add and /secret routes with real transactions", () => {
   test("should add balance and return updated balance with a real transaction", async () => {
-    const txid = await sendSomeValeToAddress(10n, envLoader.SERVER_ADDRESS);
+    const txid = await sendSomeValeToAddress(
+      10n ** 18n,
+      envLoader.SERVER_ADDRESS
+    );
 
     const response = await supertest(server.server)
       .post("/add")
@@ -30,7 +33,7 @@ describe("Test /add and /secret routes with real transactions", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       message: "Balance updated",
-      balance: 10,
+      balance: (10n ** 18n).toString(),
     });
   });
 
@@ -51,7 +54,7 @@ describe("Test /add and /secret routes with real transactions", () => {
   });
 
   test("should return 402 if balance is insufficient", async () => {
-    await redis.set(`balance:${envLoader.CLIENT_ADDRESS.toLowerCase()}`, "0.5");
+    await redis.set(`balance:${envLoader.CLIENT_ADDRESS.toLowerCase()}`, "0");
 
     const response = await supertest(server.server)
       .get("/secret")
@@ -62,13 +65,15 @@ describe("Test /add and /secret routes with real transactions", () => {
   });
 
   test("should return 400 if transaction already used", async () => {
-    await redis.set(
-      "txid:0x25ea3dd85c333377bd0944b457b59751277fdbace98553c21f90bb0786a36f98",
-      "used"
+    const txid = await sendSomeValeToAddress(
+      10n ** 18n,
+      envLoader.SERVER_ADDRESS
     );
 
+    await redis.set(`txid:${txid}`, "used");
+
     const response = await supertest(server.server).post("/add").query({
-      txid: "0x25ea3dd85c333377bd0944b457b59751277fdbace98553c21f90bb0786a36f98",
+      txid,
     });
 
     expect(response.status).toBe(400);

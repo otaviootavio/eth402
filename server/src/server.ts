@@ -1,10 +1,9 @@
 import Fastify from "fastify";
 import IORedis from "ioredis";
 import { addBalanceSchema } from "./schemas/addBalanceSchema";
+import { addPaymentMiddleware } from "./middleware/addPaymentMiddleware";
 import { secretSchema } from "./schemas/secretSchema";
-
-import { getTxByTxHash } from "./utils/getTxByTxHash";
-import { envLoader } from "./envLoader";
+import { requirePaymentMiddleware } from "./middleware/requirePaymentMiddleware";
 
 export const server = Fastify({
   logger: true,
@@ -12,41 +11,23 @@ export const server = Fastify({
 
 const redis = new IORedis();
 
-server.post<{ Querystring: { txid: `0x${string}` } }>(
+server.decorate("redis", redis);
+
+server.post<{ Querystring: { txid: `0x${string}`; userBalance?: bigint } }>(
   "/add",
-  { schema: addBalanceSchema },
+  {
+    schema: addBalanceSchema,
+    preHandler: addPaymentMiddleware,
+  },
   async function (request, reply) {
     try {
-      const { txid } = request.query;
-      const txUsedKey = `txid:${txid.toLowerCase()}`;
-
-      // Verifica se a transação já foi usada
-      const txUsed = await redis.get(txUsedKey);
-      if (txUsed) {
-        reply.status(400).send({ error: "Transaction already used" });
-        return;
+      if (request.query.userBalance === undefined) {
+        throw new Error("userBalance not set in middleware");
       }
-
-      const { from, to, value } = await getTxByTxHash(txid);
-
-      if (!to) throw new Error();
-
-      if (to.toLowerCase() !== envLoader.SERVER_ADDRESS.toLowerCase()) {
-        reply
-          .status(402)
-          .send(`Payment required to address ${envLoader.SERVER_ADDRESS}`);
-      } else {
-        const balanceKey = `balance:${from.toLowerCase()}`;
-
-        // Adiciona ou atualiza o saldo do usuário no Redis
-        let userBalance = await redis.get(balanceKey);
-        let newBalance = BigInt(userBalance || "0") + value;
-
-        await redis.set(balanceKey, newBalance.toString());
-        await redis.set(txUsedKey, "used");
-
-        reply.send({ message: "Balance updated", balance: newBalance });
-      }
+      reply.send({
+        message: "Balance updated",
+        balance: request.query.userBalance,
+      });
     } catch (error) {
       console.log(error);
       reply
@@ -56,24 +37,17 @@ server.post<{ Querystring: { txid: `0x${string}` } }>(
   }
 );
 
-server.get<{ Querystring: { address: string } }>(
+server.get<{ Querystring: { address: string; userBalance?: bigint } }>(
   "/secret",
-  { schema: secretSchema },
+  {
+    schema: secretSchema,
+    preHandler: requirePaymentMiddleware,
+  },
   async function (request, reply) {
     try {
-      const { address } = request.query;
-      const balanceKey = `balance:${address.toLowerCase()}`;
-
-      // Verifica o saldo do usuário
-      let userBalance = await redis.get(balanceKey);
-      if (userBalance === null || parseFloat(userBalance) < 1) {
-        reply.status(402).send(`Insufficient balance.`);
-        return;
+      if (request.query.userBalance === undefined) {
+        throw new Error("userBalance not set in middleware");
       }
-
-      // Deduz 1 do saldo do usuário
-      let newBalance = parseInt(userBalance) - 1;
-      await redis.set(balanceKey, newBalance.toString());
 
       reply.send("secret!");
     } catch (error) {
