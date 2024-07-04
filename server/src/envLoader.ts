@@ -16,6 +16,14 @@ const hexStringSchema = z
 
 // Define the schema for environment variables using zod and the custom hex string schema
 const envSchema = z.object({
+  CLIENT_ADDRESS: hexStringSchema.refine((val) => val.length === 42, {
+    message:
+      "Invalid CLIENT_ADDRESS format, must be 42 characters including 0x",
+  }),
+  CLIENT_PRIVATE_KEY: hexStringSchema.refine((val) => val.length === 66, {
+    message:
+      "Invalid CLIENT_PRIVATE_KEY format, must be 66 characters including 0x",
+  }),
   SERVER_ADDRESS: hexStringSchema.refine((val) => val.length === 42, {
     message:
       "Invalid SERVER_ADDRESS format, must be 42 characters including 0x",
@@ -23,6 +31,13 @@ const envSchema = z.object({
   SERVER_PRIVATE_KEY: hexStringSchema.refine((val) => val.length === 66, {
     message:
       "Invalid SERVER_PRIVATE_KEY format, must be 66 characters including 0x",
+  }),
+  OTHER_ADDRESS: hexStringSchema.refine((val) => val.length === 42, {
+    message: "Invalid OTHER_ADDRESS format, must be 42 characters including 0x",
+  }),
+  OTHER_PRIVATE_KEY: hexStringSchema.refine((val) => val.length === 66, {
+    message:
+      "Invalid OTHER_PRIVATE_KEY format, must be 66 characters including 0x",
   }),
 });
 

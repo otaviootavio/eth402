@@ -6,13 +6,13 @@ import { secretSchema } from "./schemas/secretSchema";
 import { getTxByTxHash } from "./utils/getTxByTxHash";
 import { envLoader } from "./envLoader";
 
-const fastify = Fastify({
+export const server = Fastify({
   logger: true,
 });
 
 const redis = new IORedis();
 
-fastify.post<{ Querystring: { txid: `0x${string}` } }>(
+server.post<{ Querystring: { txid: `0x${string}` } }>(
   "/add",
   { schema: addBalanceSchema },
   async function (request, reply) {
@@ -56,7 +56,7 @@ fastify.post<{ Querystring: { txid: `0x${string}` } }>(
   }
 );
 
-fastify.get<{ Querystring: { address: string } }>(
+server.get<{ Querystring: { address: string } }>(
   "/secret",
   { schema: secretSchema },
   async function (request, reply) {
@@ -85,10 +85,10 @@ fastify.get<{ Querystring: { address: string } }>(
   }
 );
 
-fastify.listen({ port: 3000 }, function (err, address) {
+server.listen({ port: 3000 }, function (err, address) {
   if (err) {
-    fastify.log.error(err);
+    server.log.error(err);
     process.exit(1);
   }
-  fastify.log.info(`Server listening at ${address}`);
+  server.log.info(`Server listening at ${address}`);
 });
